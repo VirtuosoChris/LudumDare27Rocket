@@ -134,23 +134,15 @@ void loadSwitches(std::vector<struct game_objects> &switches, std::vector<struct
 
 void setLights(std::vector<struct game_objects> &switches, std::vector<struct game_objects> &lights)
 {
-	unsigned int sw_state = 0;
-	unsigned int l_state = 0;
-	//std::cout << "switches state in setlights is: ";
-	for(int i = 0; i<switches.size(); i++){
-		sw_state += switches.at(i).state * 5 * i;
+	srand(0x83b2371c);
+	
+	for(int i=0;i<switches.size();i++)
+	{
+		for(int j=0;j<lights.size();j++)
+		{
+			lights[j].state = lights[j].state ^ (rand() & 0x1) ^ switches[i].state;
+		}
 	}
-
-
-	srand(sw_state);
-	l_state = rand();
-
-
-    for(int i=0;i<lights.size();i++)
-    {
-       lights.at(i).state = ((l_state >> i) & 1) ;
-    }
-
 }
 
 void handleInput(float x, float y, std::vector<struct game_objects> &switches, std::vector<struct game_objects> &lights)
