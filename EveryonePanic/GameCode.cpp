@@ -24,7 +24,7 @@
 
 #include "GameCode.h"
 
-bool wonGame= true;
+bool wonGame= false;
 
 
 std::vector<struct game_objects> switches;
