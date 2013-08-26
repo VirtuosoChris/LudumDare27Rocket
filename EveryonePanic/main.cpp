@@ -11,6 +11,9 @@
 #include <memory>
 
 #include <AL/alut.h>
+#include "GameCode.h"
+
+
 using namespace std;
 
 
@@ -18,6 +21,7 @@ int resWidth = 1024;
 int resHeight = 768;
 
 Timer timer;
+
 
 Texture panel;
 
@@ -30,9 +34,12 @@ float translationRate = 100;
 
 float translationX=-625,translationY=-238;
 
+//float translationX=0,translationY=0;
+
 std::shared_ptr<MovieState> gameOver;
 
 
+std::array<Texture,2> switchTextures[3];
 
 
 ///\todo separate out the loading from the playsound
@@ -61,42 +68,15 @@ void savePng(const char* filename, const unsigned char* pixels, unsigned int wid
 }
 
 
-void drawFrame()
-{
 
-    int threeQuartersScreenX = (resWidth>>1) + (resWidth>>2); //
-    //std::cout<<threeQuartersScreenX<<std::endl;
-    int quarterScreenX = resWidth>>2;
-    //std::cout<<quarterScreenX<<std::endl;
-    int threeQuartersScreenY = (resHeight>>1) + (resHeight>>2); //
-    int quarterScreenY = resHeight>>2;
-
-
-
-    translationX += screenCursorX>threeQuartersScreenX ? -.50
-    : (screenCursorX < quarterScreenX? .50 : 0.0);
-
-    //std::cout<<"cursorY quarter 3quarter "<<screenCursorY<<" "<<quarterScreenY<<" "<<threeQuartersScreenY<<std::endl;
-
-    translationY += screenCursorY>threeQuartersScreenY ? .50
-    : (screenCursorY < quarterScreenY? -.50 : 0.0);
-
-    translationX = -std::max<float>(-translationX, 0.0);
-    translationX = -std::min<float>(-translationX, panel.w-(800));
-
-    translationY = std::min<float>(translationY, 0.0);
-    translationY = std::max<float>(translationY, -(panel.h - 700) );
-
-    //std::cout<<"txy "<<translationX<<" "<<translationY<<std::endl;
-
-    glClear(GL_COLOR_BUFFER_BIT);
-
-/*
+void drawVideoFrame(){
+glClearColor(1.0,0.0,0.0,1.0);
+    glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     //std::cout<<"New frame"<<std::endl;
     gameOver->update();///\todo if no update crash
     //std::cout<<"Done updating"<<std::endl;
     if(gameOver->playing){///\todo crash without
-       // std::cout<<"playing"<<std::endl;
+        //std::cout<<"playing"<<std::endl;
         gameOver->texture.bind();
         //std::cout<<"Bound texture"<<std::endl;
         glBegin(GL_QUADS);
@@ -115,8 +95,104 @@ void drawFrame()
 
         glEnd();
      //   std::cout<<"Done with draw"<<std::endl;
+}else{
+exit(0);
 }
-*/
+
+
+glutSwapBuffers();
+
+}
+
+void drawSwitches(){
+
+
+    for(int i =0 ; i < switches.size(); i++){
+
+        Texture& tex = switchTextures[switches[i].orientation][switches[i].state];
+
+        tex.bind();
+       //glDisable(GL_TEXTURE_2D);
+       //glColor3f(1.0,0.0,0.0);
+
+        const float& middleX = switches[i].x;
+        const float& middleY = panel.h - switches[i].y;
+        const float& radiusX = tex.w / 2.0;
+        const float& radiusY = tex.h / 2.0;
+
+
+        glBegin(GL_QUADS);
+
+                glTexCoord2f(1.0,0.0);
+            glVertex3f(middleX + radiusX,middleY + radiusY,0.0);
+
+                glTexCoord2f(0.0,0.0);
+            glVertex3f(middleX- radiusX ,middleY + radiusY,0.0);
+
+                glTexCoord2f(0.0,1.0);
+            glVertex3f(middleX - radiusX,middleY-radiusY,0.0);
+
+                glTexCoord2f(1.0,1.0);
+            glVertex3f(middleX + radiusX,middleY - radiusY,0.0);
+
+
+        glEnd();
+
+    }
+
+
+//glColor3f(1,1,1);
+//std::cout<<"Drew "<<switches.size()<<" switches"<<std::endl;
+ //glEnable(GL_TEXTURE_2D);
+
+//system("pause");
+
+}
+
+
+
+
+
+void drawFrame()
+{
+
+
+    static Timer countdownTimer;
+
+    const float translationRate=1000.0;
+
+    static Timer moveTimer;
+
+    int threeQuartersScreenX = (resWidth>>1) + (resWidth>>2); //
+    //std::cout<<threeQuartersScreenX<<std::endl;
+    int quarterScreenX = resWidth>>2;
+    //std::cout<<quarterScreenX<<std::endl;
+    int threeQuartersScreenY = (resHeight>>1) + (resHeight>>2); //
+    int quarterScreenY = resHeight>>2;
+
+    float cursorDeltaT = moveTimer.getDelta();
+    moveTimer.reset();
+
+    float trans = translationRate * cursorDeltaT;
+
+    translationX += screenCursorX>threeQuartersScreenX ? -trans
+    : (screenCursorX < quarterScreenX? trans : 0.0);
+
+    //std::cout<<"cursorY quarter 3quarter "<<screenCursorY<<" "<<quarterScreenY<<" "<<threeQuartersScreenY<<std::endl;
+
+    translationY += screenCursorY>threeQuartersScreenY ? trans
+    : (screenCursorY < quarterScreenY? -trans : 0.0);
+
+    translationX = -std::max<float>(-translationX, 0.0);
+    translationX = -std::min<float>(-translationX, panel.w-(800));
+
+    translationY = std::min<float>(translationY, 0.0);
+    translationY = std::max<float>(translationY, -(panel.h - 700) );
+
+    //std::cout<<"txy "<<translationX<<" "<<translationY<<std::endl;
+
+    glClear(GL_COLOR_BUFFER_BIT);
+
 
 
     panel.bind();
@@ -125,22 +201,6 @@ void drawFrame()
     glTranslatef(translationX,translationY,0.0);
 
     glBegin(GL_QUADS);
-
-/*
-            glTexCoord2f(1.0,0.0);
-            glVertex3f(1.0,1.0,0.0);
-
-            glTexCoord2f(0.0,0.0);
-            glVertex3f(-1.0,1.0,0.0);
-
-            glTexCoord2f(0.0,1.0);
-            glVertex3f(-1.0,-1.0,0.0);
-
-            glTexCoord2f(1.0,1.0);
-            glVertex3f(1.0,-1.0,0.0);
-*/
-
-
 
             glTexCoord2f(1.0,0.0);
             glVertex3f(panel.w,panel.h,0.0);
@@ -154,14 +214,33 @@ void drawFrame()
             glTexCoord2f(1.0,1.0);
             glVertex3f(panel.w,0,0.0);
 
-
-
     glEnd();
+
+
+    drawSwitches();
+
 
     glPopMatrix();
 
     glutSwapBuffers();
    // std::cout<<"Done totally"<<std::endl;
+
+   if(countdownTimer.getDelta() >10.0){
+
+     extern bool wonGame;
+     if(wonGame){
+     gameOver.reset(new MovieState("WinGame.mp4"));
+     }else{
+      gameOver.reset(new MovieState("GameOver.mp4"));
+     }
+     gameOver->begin();
+     gameOver->update();
+
+    glLoadIdentity();
+   //  gluOrtho2D(-1.0,1.0,-1.0,1.0);
+
+     glutDisplayFunc(drawVideoFrame);
+   }
 }
 
 
@@ -177,6 +256,18 @@ void reshape(int w, int h)
 void init()
 {
 
+ loadSwitches(switches, lights);
+
+    std::cout<<"TEXTURE SPRITE LOADING "<<std::endl;
+    switchTextures[orientation::left][0]  = Texture("locations/left_switch_down.png");
+    switchTextures[orientation::left][1]  = Texture("locations/left_switch_up.png");;
+
+    switchTextures[orientation::right][0] = Texture("locations/right_switch_down.png");
+    switchTextures[orientation::right][1] = Texture("locations/right_switch_up.png");
+
+    switchTextures[orientation::middle][1] = Texture("locations/middle_switch_up.png");
+    switchTextures[orientation::middle][0] = Texture("locations/middle_switch_down.png");
+
     if (avbin_init())
     {
         printf("Fatal: Couldn't initialize AVbin");
@@ -185,11 +276,6 @@ void init()
 
     panel = Texture("panel.jpg");
 
-    gameOver.reset(new MovieState("WinGame.mp4"));
-
-    gameOver->begin();
-
-    gameOver->update();///\todo if no update crash
 
 
 
@@ -203,12 +289,14 @@ void init()
 
     glViewport(0,0,resWidth, resHeight);
 
-    gluOrtho2D(0,resWidth*.75,0,resHeight*.75);
+    gluOrtho2D(0,resWidth* .75,0,resHeight * .75);
 
     glutWarpPointer(resWidth / 2, resHeight / 2);
 
 
 }
+
+
 
 
 void setCursor(int cursorX, int cursorY)
@@ -246,7 +334,22 @@ void mouseButtonHandler(int button, int state, int x, int y)
     if(state==GLUT_UP)
     {
 
+        y = (resHeight - y);
 
+//float translationX=-625,translationY=-238;
+
+             std::cout<<"\n\nClicked WC"<<x << " "<<y<<std::endl;
+
+        float tmp=(panel.h -  y*.75);
+
+        std::cout<<"clickPosY scale "<<tmp<<std::endl;
+
+        float clickPosX = (x*.75 - translationX);
+        float clickPosY =  tmp +   translationY;
+
+         std::cout<<"Clicked"<<clickPosX << " "<<clickPosY<<std::endl;
+
+        handleInput(clickPosX, clickPosY, switches,lights);
 
     }
     else if(state==GLUT_DOWN)

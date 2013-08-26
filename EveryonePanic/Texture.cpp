@@ -93,4 +93,8 @@ Texture::Texture(const char* texture)
     std::cout<<"Left texture ctor"<<std::endl;
 
 }
+else{
+
+std::cout<<"Unable to load "<<texture<<std::endl;
+}
 }

@@ -22,6 +22,9 @@
 #define LIGHT_W 13
 #define LIGHT_H 12
 
+#include <iostream>
+#include <vector>
+#include <fstream>
 enum orientation {left, middle, right};
 
 //struct for switches and lights
