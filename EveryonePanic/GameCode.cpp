@@ -82,7 +82,7 @@ int notMain(){
 //handle setting up the game objects
 void loadSwitches(std::vector<struct game_objects> &switches, std::vector<struct game_objects> &lights)
 {
-	std::fstream file;
+	std::ifstream file;
 	struct game_objects temp;
 	std::string filename = "locations/left_switches";
 
@@ -115,20 +115,29 @@ void loadSwitches(std::vector<struct game_objects> &switches, std::vector<struct
 		else if (i == 1)
 			filename = "locations/right_switches";
 	}
+    std::ifstream file2;
+	file2.open("locations/small_square_lights");
 
-	file.open("locations/small_square_lights");
-		while(!file.eof()){
-		file >> temp.x;
-		file >> temp.y;
+
+    while(!file2.eof()){
+	//	if(!
+       (file2 >> temp.x);
+        //    std::cout << "err\n";
+		//if(!
+       (file2 >> temp.y);
+           // ;;std::cout << "err\n";
 
 		temp.state = 0;
 
+		temp.orientation = orientation::left;
+
 		lights.push_back(temp);
 
-		std::cout << "x is " << temp.x;
-		std::cout << " y is " << temp.y << std::endl;
+		// std::cout << "x is " << temp.x;
+		//std::cout << " y is " << temp.y << std::endl;
+		//system("PAUSE");
 	}
-	file.close();
+	file2.close();
 
 }
 

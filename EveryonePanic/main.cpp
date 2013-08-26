@@ -40,7 +40,7 @@ std::shared_ptr<MovieState> gameOver;
 
 
 std::array<Texture,2> switchTextures[3];
-
+std::array<Texture,2> lightTextures[3];
 
 ///\todo separate out the loading from the playsound
 void playSound(const std::string& sound){
@@ -149,6 +149,52 @@ void drawSwitches(){
 
 }
 
+void drawLights(){
+
+    //std::cout << "there are " << lights.size() << "lights\n";
+    for(int i =0 ; i < lights.size(); i++){
+
+        Texture& tex = lightTextures[lights[i].orientation][lights[i].state];
+
+
+        tex.bind();
+
+
+       //glDisable(GL_TEXTURE_2D);
+       //glColor3f(1.0,0.0,0.0);
+
+        const float& middleX = lights[i].x;
+        const float& middleY = panel.h - lights[i].y;
+        const float& radiusX = tex.w / 2.0;
+        const float& radiusY = tex.h / 2.0;
+
+//        std::cout<<"RADIUS "<<radiusX<<" "<<radiusY<<std::endl;
+
+
+        glBegin(GL_QUADS);
+
+                glTexCoord2f(1.0,0.0);
+            glVertex3f(middleX + radiusX,middleY + radiusY,0.0);
+
+                glTexCoord2f(0.0,0.0);
+            glVertex3f(middleX- radiusX ,middleY + radiusY,0.0);
+
+                glTexCoord2f(0.0,1.0);
+            glVertex3f(middleX - radiusX,middleY-radiusY,0.0);
+
+                glTexCoord2f(1.0,1.0);
+            glVertex3f(middleX + radiusX,middleY - radiusY,0.0);
+
+
+        glEnd();
+        std::cout << "drew light " << lights[i].x << " " << lights[i].y << "\n";
+      //  system("PAUSE");
+    }
+
+    //glEnable(GL_TEXTURE_2D);
+   //glColor3f(1,1,1);
+
+}
 
 
 
@@ -218,7 +264,7 @@ void drawFrame()
 
 
     drawSwitches();
-
+    drawLights();
 
     glPopMatrix();
 
@@ -268,6 +314,9 @@ void init()
     switchTextures[orientation::middle][1] = Texture("locations/middle_switch_up.png");
     switchTextures[orientation::middle][0] = Texture("locations/middle_switch_down.png");
 
+    //left orientation represents small square lights
+    lightTextures[orientation::left][0] = Texture("locations/small_light_off.png");
+    lightTextures[orientation::left][1] = Texture("locations/small_light_on.png");
     if (avbin_init())
     {
         printf("Fatal: Couldn't initialize AVbin");
