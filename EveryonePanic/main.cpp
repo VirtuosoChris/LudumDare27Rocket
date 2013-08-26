@@ -173,17 +173,18 @@ void drawLights(){
 
         glBegin(GL_QUADS);
 
-                glTexCoord2f(1.0,0.0);
-            glVertex3f(middleX + radiusX,middleY + radiusY,0.0);
 
-                glTexCoord2f(0.0,0.0);
-            glVertex3f(middleX- radiusX ,middleY + radiusY,0.0);
+            glTexCoord2f(1.0,0.0);
+            glVertex3f(middleX + radiusX*2,middleY,0.0);
 
-                glTexCoord2f(0.0,1.0);
-            glVertex3f(middleX - radiusX,middleY-radiusY,0.0);
+            glTexCoord2f(0.0,0.0);
+            glVertex3f(middleX,middleY,0.0);
 
-                glTexCoord2f(1.0,1.0);
-            glVertex3f(middleX + radiusX,middleY - radiusY,0.0);
+            glTexCoord2f(0.0,1.0);
+            glVertex3f(middleX,middleY - radiusY*2,0.0);
+
+            glTexCoord2f(1.0,1.0);
+            glVertex3f(middleX + radiusX*2,middleY - radiusY*2,0.0);
 
 
         glEnd();
@@ -271,7 +272,7 @@ void drawFrame()
     glutSwapBuffers();
    // std::cout<<"Done totally"<<std::endl;
 
-   if(countdownTimer.getDelta() >10.0){
+   if(countdownTimer.getDelta() >100.0){
 
      extern bool wonGame;
      if(wonGame){
@@ -341,6 +342,7 @@ void init()
     gluOrtho2D(0,resWidth* .75,0,resHeight * .75);
 
     glutWarpPointer(resWidth / 2, resHeight / 2);
+ setLights(switches, lights);
 
 
 }
@@ -399,6 +401,8 @@ void mouseButtonHandler(int button, int state, int x, int y)
          std::cout<<"Clicked"<<clickPosX << " "<<clickPosY<<std::endl;
 
         handleInput(clickPosX, clickPosY, switches,lights);
+
+        setLights(switches, lights);
 
     }
     else if(state==GLUT_DOWN)
