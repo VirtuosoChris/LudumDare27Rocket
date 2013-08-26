@@ -17,8 +17,8 @@
 using namespace std;
 
 
-int resWidth = 1024;
-int resHeight = 768;
+int resWidth = 1280;
+int resHeight =720;
 
 Timer timer;
 
@@ -30,15 +30,15 @@ int screenCursorX=0;
 int screenCursorY=0;
 
 
-float translationRate = 100;
+const float translationRate=1000.0;
 
-float translationX=-625,translationY=-238;
+//float translationX=-625,translationY=-238;
 
-//float translationX=0,translationY=0;
+float translationX=0,translationY=0;
 
 std::shared_ptr<MovieState> gameOver;
 
-
+double zoom=.80;
 std::array<Texture,2> switchTextures[3];
 std::array<Texture,2> lightTextures[3];
 
@@ -70,7 +70,11 @@ void savePng(const char* filename, const unsigned char* pixels, unsigned int wid
 
 
 void drawVideoFrame(){
-glClearColor(1.0,0.0,0.0,1.0);
+
+     glLoadIdentity();
+
+
+//glClearColor(0.0,0.0,0.0,1.0);
     glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
     //std::cout<<"New frame"<<std::endl;
     gameOver->update();///\todo if no update crash
@@ -78,23 +82,48 @@ glClearColor(1.0,0.0,0.0,1.0);
     if(gameOver->playing){///\todo crash without
         //std::cout<<"playing"<<std::endl;
         gameOver->texture.bind();
-        //std::cout<<"Bound texture"<<std::endl;
+
+        float aspect = gameOver->movieWidth / (float)gameOver->movieHeight;
+        float yScale = gameOver->movieHeight;//(gameOver->movieWidth > (float)gameOver->movieHeight) ? 1.0 / aspect:1.0;
+
+
+        float xScale =gameOver->movieWidth;//(gameOver->movieWidth < (float)gameOver->movieHeight) ? aspect : 1.0;
+
+        xScale = resWidth / xScale;
+        yScale = resHeight / yScale;
+
+        xScale = std::min<float>(xScale, yScale);
+        yScale = std::min<float>(xScale,yScale);
+
+
+        float screenAX =  (resWidth / float(resHeight));
+        float screenAY =   (resHeight / float(resHeight));
+
+        gluOrtho2D(0,resWidth,0,resHeight);
+
+        glPushMatrix();
+
+        float transX = .5 * (resWidth - (xScale * gameOver->movieWidth ));
+        float transY = .5 * (resHeight - (yScale * gameOver->movieHeight));
+        glTranslatef(transX,transY,0.0);
+
         glBegin(GL_QUADS);
 
             glTexCoord2f(1.0,0.0);
-            glVertex3f(1.0,1.0,0.0);
+            glVertex3f(gameOver->movieWidth*xScale,gameOver->movieHeight*yScale,0.0);
 
             glTexCoord2f(0.0,0.0);
-            glVertex3f(-1.0,1.0,0.0);
+            glVertex3f(0,gameOver->movieHeight*yScale,0.0);
 
             glTexCoord2f(0.0,1.0);
-            glVertex3f(-1.0,-1.0,0.0);
+            glVertex3f(0,0,0.0);
 
             glTexCoord2f(1.0,1.0);
-            glVertex3f(1.0,-1.0,0.0);
+            glVertex3f(gameOver->movieWidth*xScale,0,0.0);
 
         glEnd();
      //   std::cout<<"Done with draw"<<std::endl;
+     glPopMatrix();
 }else{
 exit(0);
 }
@@ -188,7 +217,7 @@ void drawLights(){
 
 
         glEnd();
-        std::cout << "drew light " << lights[i].x << " " << lights[i].y << "\n";
+       // std::cout << "drew light " << lights[i].x << " " << lights[i].y << "\n";
       //  system("PAUSE");
     }
 
@@ -206,16 +235,16 @@ void drawFrame()
 
     static Timer countdownTimer;
 
-    const float translationRate=1000.0;
+
 
     static Timer moveTimer;
 
-    int threeQuartersScreenX = (resWidth>>1) + (resWidth>>2); //
+    int threeQuartersScreenX = .9 * resWidth;//(resWidth>>1) + (resWidth>>2); //
     //std::cout<<threeQuartersScreenX<<std::endl;
-    int quarterScreenX = resWidth>>2;
+    int quarterScreenX =.1 * resWidth;// resWidth>>2;
     //std::cout<<quarterScreenX<<std::endl;
-    int threeQuartersScreenY = (resHeight>>1) + (resHeight>>2); //
-    int quarterScreenY = resHeight>>2;
+    int threeQuartersScreenY = resHeight * .9;//(resHeight>>1) + (resHeight>>2); //
+    int quarterScreenY = resHeight * .1;//resHeight>>2;
 
     float cursorDeltaT = moveTimer.getDelta();
     moveTimer.reset();
@@ -272,7 +301,7 @@ void drawFrame()
     glutSwapBuffers();
    // std::cout<<"Done totally"<<std::endl;
 
-   if(countdownTimer.getDelta() >100.0){
+   if(countdownTimer.getDelta() >10.0){
 
      extern bool wonGame;
      if(wonGame){
@@ -295,6 +324,12 @@ void drawFrame()
 void reshape(int w, int h)
 {
 
+    resWidth = w;
+    resHeight = h;
+
+glLoadIdentity();
+ gluOrtho2D(0,resWidth* zoom,0,resHeight * zoom);
+ glViewport(0,0,resWidth, resHeight);
 
 
 }
@@ -339,7 +374,7 @@ void init()
 
     glViewport(0,0,resWidth, resHeight);
 
-    gluOrtho2D(0,resWidth* .75,0,resHeight * .75);
+    gluOrtho2D(0,resWidth* zoom,0,resHeight * zoom);
 
     glutWarpPointer(resWidth / 2, resHeight / 2);
  setLights(switches, lights);
@@ -389,13 +424,13 @@ void mouseButtonHandler(int button, int state, int x, int y)
 
 //float translationX=-625,translationY=-238;
 
-             std::cout<<"\n\nClicked WC"<<x << " "<<y<<std::endl;
+         std::cout<<"\n\nClicked WC"<<x << " "<<y<<std::endl;
 
-        float tmp=(panel.h -  y*.75);
+        float tmp=((float)panel.h -  y*zoom);
 
         std::cout<<"clickPosY scale "<<tmp<<std::endl;
 
-        float clickPosX = (x*.75 - translationX);
+        float clickPosX = ((float)x*zoom - translationX);
         float clickPosY =  tmp +   translationY;
 
          std::cout<<"Clicked"<<clickPosX << " "<<clickPosY<<std::endl;
@@ -417,6 +452,18 @@ void mouseButtonHandler(int button, int state, int x, int y)
 
 void keyFunc(unsigned char key, int x, int y)
 {
+    if(isalpha(key))
+    {
+        switches[34+(int)(tolower(key)-'a')].state ^= true;
+        setLights(switches,lights);
+        return;
+    }
+    if(isdigit(key))
+    {
+        switches[34+26+(int)(key-'0')].state ^=true;
+        setLights(switches,lights);
+        return;
+    }
     switch(key)
     {
 
@@ -449,6 +496,7 @@ int main(int argc,char** argv)
         alutInit(&argc, argv); //init alut
 
         init();
+        glutFullScreen();
 
 
         glutDisplayFunc(drawFrame);

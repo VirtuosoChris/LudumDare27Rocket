@@ -24,7 +24,7 @@
 
 #include "GameCode.h"
 
-bool wonGame= false;
+bool wonGame= true;
 
 
 std::vector<struct game_objects> switches;
@@ -143,15 +143,23 @@ void loadSwitches(std::vector<struct game_objects> &switches, std::vector<struct
 
 void setLights(std::vector<struct game_objects> &switches, std::vector<struct game_objects> &lights)
 {
-	srand(0x83b2371c);
-for(int j=0;j<lights.size();j++)
+	unsigned int seed=0x83b2371c;
+	srand(seed);
+	for(int i=0;i<switches.size();i++)
 	{
+	    unsigned int r=rand();
+	    if(switches[i].state)
+	    {
+	        seed ^= r;
+	    }
+	}
 
-    lights[j].state=false;
-	for(int i =0;i<switches.size();i++)
-		{
-			lights[j].state = lights[j].state ^ (rand() & 0x1) ^ switches[i].state;
-		}
+	srand(seed);
+
+    for(int j=0;j<lights.size();j++)
+	{
+        unsigned int r=rand();
+        lights[j].state = r & 0x1;
 	}
 }
 
